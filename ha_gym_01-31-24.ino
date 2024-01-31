@@ -41,8 +41,6 @@ ESP8266WiFiMulti wifiMulti;
 WiFiClient espClient;
 PubSubClient client(espClient);
 String myMAC = "";
-byte flip = true;
-char rx_byte;
 /********************************************************************/
 void setup() {
   pinMode(RelayPin, OUTPUT);
@@ -124,12 +122,7 @@ void setup_wifi() {
     delay(500);
     Serial.print(".");
   }
-
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP());
-}
+ }
 /**********************************************************************************/
 void reconnect() {
   // Loop until we're reconnected
@@ -188,7 +181,6 @@ float newLux = 0.0;
 float oldRSSI = 0.0;
 float newRSSI = 0.0;
 float RSSIDiff = 3.0;
-
 /**********************************************************************************/
 void loop() {
   ArduinoOTA.handle();
