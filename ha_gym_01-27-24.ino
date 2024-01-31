@@ -61,24 +61,7 @@ void setup() {
   BH1750.start();
  
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-   if (flip == true) {
-      display.clearDisplay();
-      display.setTextSize(2);
-      display.setCursor(0, 0);
-      display.print("Connecting");
-      display.display();
-      Serial.print('+');
-      flip = false;
-    }
-    else {
-      display.clearDisplay();
-      display.display();
-      Serial.print("-");
-      flip = true;
 
-    }
-    Serial.print('.');
-  }
   setup_wifi();
   myMAC = WiFi.macAddress();
   Serial.println(myMAC);
@@ -118,14 +101,12 @@ void setup() {
     else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
-
-  /********************************************************************/
+/********************************************************************/
   client.setServer(mqtt_server, 1883);
   display.clearDisplay();
   display.setTextSize(1);
   display.setTextColor(WHITE);
 }
-
 /**********************************************************************************/
 void setup_wifi() {
   delay(10);
