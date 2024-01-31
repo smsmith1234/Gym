@@ -2,7 +2,7 @@
 // - https://github.com/esp8266/Arduino#installing-with-boards-manager
 // Required libraries (sketch -> include library -> manage libraries)
 // - PubSubClient by Nick ‘O Leary
-// - DHT sensor library by Adafruit
+// - SHT sensor library by Adafruit
 
 //OTA - MQTT
 #include <ESP8266WiFi.h>
@@ -17,7 +17,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "Adafruit_SHT4x.h
-#include <Adafruit_AHTX0.h>
 #include <hp_BH1750.h>
 
 #define wifi_ssid "Lajes"
@@ -34,12 +33,8 @@
 #define RSSI_topic "sensor/gym/RSSI"
 #define MAC_topic "sensor/gym/MAC"
 #define SSID_topic "sensor/gym/SSID"
-#define RelayPin  14
-/*#define DHTTYPE DHT22
-  #define DHTPIN  14
-  DHT dht(DHTPIN, DHTTYPE, 11); // 11 works fine for ESP8266*/
+
 Adafruit_SSD1306 display(-1);
-Adafruit_AHTX0 aht;
 Adafruit_SHT4x sht4 = Adafruit_SHT4x;
 hp_BH1750 BH1750;
 ESP8266WiFiMulti wifiMulti;
@@ -47,30 +42,26 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 String myMAC = "";
 byte flip = true;
-int HumiditySetLevel = 85;
 char rx_byte;
 /********************************************************************/
 void setup() {
   pinMode(RelayPin, OUTPUT);
   Serial.begin(115200);
-  //dht.begin();
-  if (! aht.begin()) {
-    Serial.println("Could not find AHT? Check wiring");
+  
+  if (!sht4.begin()) {
+    Serial.println("Could not find SHT? Check wiring");
     while (1) delay(10);
   }
-  Serial.println("AHT10 or AHT20 found");
+  Serial.println("SHT41 found");
+  sht4.setPrecision(SHT4X_MED_PRECISION);
+  sht4.setHeater(SHT4X_LOW_HEATER_100MS);
+  
   bool avail = BH1750.begin(BH1750_TO_GROUND);
   BH1750.calibrateTiming();
   BH1750.start();
-  sht4.begin();
-
+ 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  wifiMulti.addAP("Lajes", "S&R@kingdom21");
-  wifiMulti.addAP("Lajes_EXT", "S&R@kingdom21");
-  while (wifiMulti.run() != WL_CONNECTED) { // Wait for the Wi-Fi to connect: scan for Wi-Fi networks, and connect to the strongest of the networks above
-    delay(1000);
-
-    if (flip == true) {
+   if (flip == true) {
       display.clearDisplay();
       display.setTextSize(2);
       display.setCursor(0, 0);
@@ -88,6 +79,7 @@ void setup() {
     }
     Serial.print('.');
   }
+  setup_wifi();
   myMAC = WiFi.macAddress();
   Serial.println(myMAC);
   myMAC.replace(":", "");
@@ -99,7 +91,7 @@ void setup() {
   display.print(WiFi.RSSI());
   display.print(" dBm");
   display.display();
-  delay(10000);
+  delay(5000);
   display.clearDisplay();
   display.display();
   ArduinoOTA.begin();
@@ -231,27 +223,11 @@ void loop() {
     lastMsg = now;
     BH1750.start();
     newLux = BH1750.getLux();
-    /*Serial.print("newLux");
-      Serial.print(newLux);
-      Serial.print("oldLux");
-      Serial.println(oldLux);  */
     sensors_event_t humidity, temp;
-    aht.getEvent(&humidity, &temp);
+    sht4.getEvent(&humidity, &temp);
     float newTemp = (((temp.temperature * 9) / 5) + 32);
     float newHum = (humidity.relative_humidity);
 
-    if (newHum > HumiditySetLevel) {
-      digitalWrite(RelayPin, LOW);
-      Serial.print("Humidity High: ");
-      Serial.println(String(newHum).c_str());
-    }
-    else {
-      digitalWrite(RelayPin, HIGH);
-       Serial.print("Humidity Low: ");
-       Serial.println(String(newHum).c_str());
-    }
-    //float newTemp = dht.readTemperature(true);
-    //float newHum = dht.readHumidity();
     if (checkBound(newRSSI, oldRSSI, RSSIDiff)) {
       oldRSSI = newRSSI;
       client.publish(RSSI_topic, String(WiFi.RSSI()).c_str(), true);
