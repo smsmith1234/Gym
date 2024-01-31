@@ -67,7 +67,9 @@ void setup() {
   Serial.println(myMAC);
   myMAC.replace(":", "");
   myMAC = myMAC.substring(6);
-
+  
+  display.setTextSize(2);
+  display.clearDisplay();
   display.setCursor(0, 0);
   display.println(WiFi.localIP());
   display.setCursor(0, 28);
@@ -77,6 +79,7 @@ void setup() {
   delay(5000);
   display.clearDisplay();
   display.display();
+  
   ArduinoOTA.begin();
   /********************************************************************/
   ArduinoOTA.onStart([]() {
