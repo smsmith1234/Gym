@@ -16,6 +16,7 @@
 #include <DHT.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "Adafruit_SHT4x.h
 #include <Adafruit_AHTX0.h>
 #include <hp_BH1750.h>
 
@@ -39,6 +40,7 @@
   DHT dht(DHTPIN, DHTTYPE, 11); // 11 works fine for ESP8266*/
 Adafruit_SSD1306 display(-1);
 Adafruit_AHTX0 aht;
+Adafruit_SHT4x sht4 = Adafruit_SHT4x;
 hp_BH1750 BH1750;
 ESP8266WiFiMulti wifiMulti;
 WiFiClient espClient;
@@ -60,6 +62,7 @@ void setup() {
   bool avail = BH1750.begin(BH1750_TO_GROUND);
   BH1750.calibrateTiming();
   BH1750.start();
+  sht4.begin();
 
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   wifiMulti.addAP("Lajes", "S&R@kingdom21");
