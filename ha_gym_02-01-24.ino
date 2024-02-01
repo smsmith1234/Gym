@@ -13,19 +13,20 @@
 #define mqtt_server "192.168.1.125"
 #define mqtt_user "homeassistant"
 #define mqtt_password "Fah9BohquuNiXa1ieCh3pohquohsh6thee6ii7ja3xee4eexie7EeHen4OoX6dee"
-#define humidity_topic "sensor/gym/humidity"
-#define temperature_topic "sensor/gym/temperature"
-#define lux_topic "sensor/gym/lux"
-#define IP_topic "sensor/gym/IP"
-#define RSSI_topic "sensor/gym/RSSI"
-#define MAC_topic "sensor/gym/MAC"
-#define SSID_topic "sensor/gym/SSID"
+#define humidity_topic "sensor/new/humidity"
+#define temperature_topic "sensor/new/temperature"
+#define lux_topic "sensor/new/lux"
+#define IP_topic "sensor/new/IP"
+#define RSSI_topic "sensor/new/RSSI"
+#define MAC_topic "sensor/new/MAC"
+#define SSID_topic "sensor/new/SSID"
 
 Adafruit_SSD1306 display(-1);
 Adafruit_SHT4x sht4 = Adafruit_SHT4x;
 hp_BH1750 BH1750;
 WiFiClient espClient;
 PubSubClient client(espClient);
+
 String myMAC = "";
 long lastMsg = 0;
 float oldTemp = 0.0;
@@ -156,4 +157,4 @@ void displayWifiConnectionData(){
   display.print(WiFi.RSSI());
   display.print(" dBm");
   display.display();
- }
+}
