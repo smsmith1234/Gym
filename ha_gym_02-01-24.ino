@@ -6,7 +6,7 @@
 #include <DHT.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "Adafruit_SHT4x.h
+#include <Adafruit_SHT4x.h>
 #include <hp_BH1750.h>
 
 #define wifi_ssid "Lajes"
