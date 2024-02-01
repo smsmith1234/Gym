@@ -72,7 +72,7 @@ void setup() {
     else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
     else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
-    }
+  });
 }    
 /*********************************************************************************/
 void loop() {
@@ -106,7 +106,7 @@ void loop() {
     if (valueHasChanged(newLux, oldLux, luxDiff)) {
       oldLux = newLux;
       client.publish(lux_topic, String(newLux).c_str(), true);
-    } } }
+} } }
 /*********************************************************************************/
 void connectToWifi() {
  while (WiFi.status != WL_CONNECTED) {
