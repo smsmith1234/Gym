@@ -50,7 +50,6 @@ void setup() {
   BH1750.calibrateTiming();
   BH1750.start();
   connectToWifi();
-  );
   ArduinoOTA.begin();
   ArduinoOTA.onStart([]() {
     String type;
@@ -73,7 +72,7 @@ void setup() {
     else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
     else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
-  });
+  }
 /*********************************************************************************/
 void loop() {
   ArduinoOTA.handle();
