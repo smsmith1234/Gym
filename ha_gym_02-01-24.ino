@@ -143,7 +143,7 @@ void reconnectMQTT() {
   }
 }
 /**********************************************************************************/
-bool checkBound(float newValue, float prevValue, float maxDiff) {
+bool valueHasChanged(float newValue, float prevValue, float maxDiff) {
   //Serial.println((fabs(newValue - prevValue)));
   Serial.print("*");
   float outOfBoundDiff = 1;
@@ -153,12 +153,6 @@ bool checkBound(float newValue, float prevValue, float maxDiff) {
   else {
     return !isnan(newValue) && (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff) && (fabs(newValue - prevValue) < outOfBoundDiff);
   }
-}
-/**********************************************************************************/
-bool checkBoundLux(float newValue, float prevValue, float maxDiff) {
-  //Serial.println((fabs(newValue - prevValue)));
-  Serial.print("*");
-  return !isnan(newValue) && (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff);
 }
 /**********************************************************************************/
 void publishNetworkData() {
@@ -201,11 +195,11 @@ void loop() {
     float newTemp = (((temp.temperature * 9) / 5) + 32);
     float newHum = (humidity.relative_humidity);
 
-    if (checkBound(newRSSI, oldRSSI, RSSIDiff)) {
+    if (valueHasChanged(newRSSI, oldRSSI, RSSIDiff)) {
       oldRSSI = newRSSI;
       client.publish(RSSI_topic, String(WiFi.RSSI()).c_str(), true);
     }
-    if (checkBound(newTemp, oldTemp, diff)) {
+    if (valueHasChanged(newTemp, oldTemp, diff)) {
       oldTemp = newTemp;
       display.setTextSize(2);
       display.clearDisplay();
@@ -220,14 +214,14 @@ void loop() {
       Serial.println(String(newTemp).c_str());
       client.publish(temperature_topic, String(newTemp).c_str(), true);
     }
-    if (checkBound(newHum, oldHum, diff)) {
+    if (valueHasChanged(newHum, oldHum, diff)) {
       oldHum = newHum;
       Serial.println();
       Serial.print("New humidity:");
       Serial.println(String(newHum).c_str());
       client.publish(humidity_topic, String(newHum).c_str(), true);
     }
-    if (checkBoundLux(newLux, oldLux, luxDiff)) {
+    if (valueHasChanged(newLux, oldLux, luxDiff)) {
       oldLux = newLux;
       Serial.println();
       Serial.print("New Lux:");
