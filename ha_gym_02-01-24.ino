@@ -50,10 +50,7 @@ void setup() {
   BH1750.calibrateTiming();
   BH1750.start();
   connectToWifi();
-  displayWifiConnectionData();
-  myMAC = WiFi.macAddress();
-  myMAC.replace(":", "");
-  myMAC = myMAC.substring(6);
+  );
   ArduinoOTA.begin();
   ArduinoOTA.onStart([]() {
     String type;
@@ -112,11 +109,16 @@ void loop() {
     } } }
 /*********************************************************************************/
 void connectToWifi() {
-  delay(10);
-  WiFi.begin(wifi_ssid, wifi_password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-  } }
+ while (WiFi.status != WL_CONNECTED) {
+   WiFi.begin(wifi_ssid, wifi_password);
+  if (WiFi.status == WL_CONNECTED) {
+    displayWifiConnectionData();
+    myMAC = WiFi.macAddress();
+    myMAC.replace(":", "");
+    myMAC = myMAC.substring(6  delay(500));
+    } else {
+    delay(5000);
+  } } }
 void reconnectMQTT() {
   // Loop until we're reconnected
   while (!client.connected()) {
