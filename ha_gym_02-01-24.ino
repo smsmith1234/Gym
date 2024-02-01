@@ -3,8 +3,6 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 #include <PubSubClient.h>
-/********************************************************************/
-//Display and sensor
 #include <DHT.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
@@ -13,11 +11,9 @@
 
 #define wifi_ssid "Lajes"
 #define wifi_password "S&R@kingdom21"
-
 #define mqtt_server "192.168.1.125"
 #define mqtt_user "homeassistant"
 #define mqtt_password "Fah9BohquuNiXa1ieCh3pohquohsh6thee6ii7ja3xee4eexie7EeHen4OoX6dee"
-
 #define humidity_topic "sensor/gym/humidity"
 #define temperature_topic "sensor/gym/temperature"
 #define lux_topic "sensor/gym/lux"
