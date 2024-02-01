@@ -6,7 +6,6 @@
 
 //OTA - MQTT
 #include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -37,7 +36,6 @@
 Adafruit_SSD1306 display(-1);
 Adafruit_SHT4x sht4 = Adafruit_SHT4x;
 hp_BH1750 BH1750;
-ESP8266WiFiMulti wifiMulti;
 WiFiClient espClient;
 PubSubClient client(espClient);
 String myMAC = "";
@@ -184,7 +182,7 @@ float RSSIDiff = 3.0;
 void loop() {
   ArduinoOTA.handle();
   if (!client.connected()) {
-    reconnect();
+    reconnectMQTT();
   }
   client.loop();
   
