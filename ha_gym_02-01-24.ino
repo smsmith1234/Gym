@@ -39,44 +39,33 @@ hp_BH1750 BH1750;
 WiFiClient espClient;
 PubSubClient client(espClient);
 String myMAC = "";
+long lastMsg = 0;
+float oldTemp = 0.0;
+float oldHum = 0.0;
+float oldLux = 0.0;
+float diff = 0.05;
+float luxDiff = 1.0;
+float newLux = 0.0;
+float oldRSSI = 0.0;
+float newRSSI = 0.0;
+float RSSIDiff = 3.0;
 /********************************************************************/
 void setup() {
   Serial.begin(115200);
-  
-  if (!sht4.begin()) {
-    Serial.println("Could not find SHT? Check wiring");
-    while (1) delay(10);
-  }
-  Serial.println("SHT41 found");
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  client.setServer(mqtt_server, 1883);
+  sht4.begin();
   sht4.setPrecision(SHT4X_MED_PRECISION);
   sht4.setHeater(SHT4X_LOW_HEATER_100MS);
-  
-  bool avail = BH1750.begin(BH1750_TO_GROUND);
+  BH1750.begin(BH1750_TO_GROUND);
   BH1750.calibrateTiming();
   BH1750.start();
- 
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-
-  setup_wifi();
+  connectToWifi();
+  displayWifiConnectionData();
   myMAC = WiFi.macAddress();
-  Serial.println(myMAC);
   myMAC.replace(":", "");
   myMAC = myMAC.substring(6);
-  
-  display.setTextSize(2);
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  display.println(WiFi.localIP());
-  display.setCursor(0, 28);
-  display.print(WiFi.RSSI());
-  display.print(" dBm");
-  display.display();
-  delay(5000);
-  display.clearDisplay();
-  display.display();
-  
   ArduinoOTA.begin();
-  /********************************************************************/
   ArduinoOTA.onStart([]() {
     String type;
     if (ArduinoOTA.getCommand() == U_FLASH)
@@ -99,92 +88,13 @@ void setup() {
     else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
-/********************************************************************/
-  client.setServer(mqtt_server, 1883);
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-}
-/**********************************************************************************/
-void setup_wifi() {
-  delay(10);
-  // We start by connecting to a WiFi network
-  Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(wifi_ssid);
-
-  WiFi.begin(wifi_ssid, wifi_password);
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
- }
-/**********************************************************************************/
-void reconnectMQTT() {
-  // Loop until we're reconnected
-  while (!client.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    // If you do not want to use a username and password, change next line to
-    //if (client.connect("ESP8266Client")) {
-    String myClient = "ESP-" + myMAC;
-    Serial.println(myClient);
-    if (client.connect(myClient.c_str(), mqtt_user, mqtt_password)) {
-      Serial.println("connected");
-      publishNetworkData();
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(client.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
-}
-/**********************************************************************************/
-bool valueHasChanged(float newValue, float prevValue, float maxDiff) {
-  //Serial.println((fabs(newValue - prevValue)));
-  Serial.print("*");
-  float outOfBoundDiff = 1;
-  if (prevValue == 0) {
-    return !isnan(newValue) && (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff);
-  }
-  else {
-    return !isnan(newValue) && (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff) && (fabs(newValue - prevValue) < outOfBoundDiff);
-  }
-}
-/**********************************************************************************/
-void publishNetworkData() {
-  client.publish(IP_topic, WiFi.localIP().toString().c_str(), true);
-  client.publish(RSSI_topic, String(WiFi.RSSI()).c_str(), true);
-  client.publish(MAC_topic, String(WiFi.macAddress()).c_str(), true);
-  client.publish(SSID_topic, String(WiFi.SSID()).c_str(), true);
-}
-/**********************************************************************************/
-long lastMsg = 0;
-float oldTemp = 0.0;
-float oldHum = 0.0;
-float oldLux = 0.0;
-float diff = 0.05;
-float luxDiff = 1.0;
-float newLux = 0.0;
-float oldRSSI = 0.0;
-float newRSSI = 0.0;
-float RSSIDiff = 3.0;
-/**********************************************************************************/
+  /*********************************************************************************/
 void loop() {
   ArduinoOTA.handle();
   if (!client.connected()) {
     reconnectMQTT();
   }
   client.loop();
-  
-  if (Serial.available() > 0) {
-    rx_byte = Serial.read();
-    Serial.print("You typed: ");
-    Serial.println(rx_byte);
-  }
   long now = millis();
   if (now - lastMsg > 5000) {
     lastMsg = now;
@@ -194,39 +104,68 @@ void loop() {
     sht4.getEvent(&humidity, &temp);
     float newTemp = (((temp.temperature * 9) / 5) + 32);
     float newHum = (humidity.relative_humidity);
-
     if (valueHasChanged(newRSSI, oldRSSI, RSSIDiff)) {
       oldRSSI = newRSSI;
       client.publish(RSSI_topic, String(WiFi.RSSI()).c_str(), true);
     }
     if (valueHasChanged(newTemp, oldTemp, diff)) {
       oldTemp = newTemp;
-      display.setTextSize(2);
-      display.clearDisplay();
-      display.setCursor(0, 0);
-      display.println("New Temp:");
-      display.setCursor(0, 28);
-      display.print(String(newTemp).c_str());
-      display.print(" F");
-      display.display();
-      Serial.println();
-      Serial.print("New temperature:");
-      Serial.println(String(newTemp).c_str());
+      displayTemp();
       client.publish(temperature_topic, String(newTemp).c_str(), true);
     }
     if (valueHasChanged(newHum, oldHum, diff)) {
       oldHum = newHum;
-      Serial.println();
-      Serial.print("New humidity:");
-      Serial.println(String(newHum).c_str());
       client.publish(humidity_topic, String(newHum).c_str(), true);
     }
     if (valueHasChanged(newLux, oldLux, luxDiff)) {
       oldLux = newLux;
-      Serial.println();
-      Serial.print("New Lux:");
-      Serial.println(String(newLux).c_str());
       client.publish(lux_topic, String(newLux).c_str(), true);
-    }
-  }
+    } } }
+/*********************************************************************************/
+void connectToWifi() {
+  delay(10);
+  WiFi.begin(wifi_ssid, wifi_password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  } }
+void reconnectMQTT() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    String myClient = "ESP-" + myMAC;
+    if (client.connect(myClient.c_str(), mqtt_user, mqtt_password)) {
+      publishNetworkData();
+    } else {
+      delay(5000);
+  } } }
+bool valueHasChanged(float newValue, float prevValue, float maxDiff) {
+  float outOfBoundDiff = 1;
+  if (prevValue == 0) {
+    return !isnan(newValue) && (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff);
+    }  else {
+    return !isnan(newValue) && (newValue < prevValue - maxDiff || newValue > prevValue + maxDiff) && (fabs(newValue - prevValue) < outOfBoundDiff);
+ } }
+void publishNetworkData() {
+  client.publish(IP_topic, WiFi.localIP().toString().c_str(), true);
+  client.publish(RSSI_topic, String(WiFi.RSSI()).c_str(), true);
+  client.publish(MAC_topic, String(WiFi.macAddress()).c_str(), true);
+  client.publish(SSID_topic, String(WiFi.SSID()).c_str(), true);
 }
+void displayTemp() {
+   display.setTextSize(2);
+      display.clearDisplay();
+      display.setCursor(0, 0);
+      display.setCursor(0, 28);
+      display.print(String(newTemp).c_str());
+      display.print(" F");
+      display.display();
+}
+void displayWifiConnectionData(){
+ display.setTextSize(2);
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println(WiFi.localIP());
+  display.setCursor(0, 28);
+  display.print(WiFi.RSSI());
+  display.print(" dBm");
+  display.display();
+ }
