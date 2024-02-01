@@ -1,10 +1,3 @@
-// Get ESP8266 going with Arduino IDE
-// - https://github.com/esp8266/Arduino#installing-with-boards-manager
-// Required libraries (sketch -> include library -> manage libraries)
-// - PubSubClient by Nick ‘O Leary
-// - SHT sensor library by Adafruit
-
-//OTA - MQTT
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
