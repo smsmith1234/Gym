@@ -83,7 +83,7 @@ void loop() {
   }
   client.loop();
   long now = millis();
-  if (now - lastMsg > 5000) {
+  if (now - lastMsg > 15000) {
     lastMsg = now;
     BH1750.start();
     newLux = BH1750.getLux();
