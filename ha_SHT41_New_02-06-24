@@ -191,4 +191,16 @@ void displayTemp() {
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print(String(newTemp).c_str());
-  display.print("
+   display.print(" F");
+  display.display();
+}
+void displayWifiConnectionData(){
+ display.setTextSize(2);
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println(WiFi.localIP());
+  display.setCursor(0, 28);
+  display.print(WiFi.RSSI());
+  display.print(" dBm");
+  display.display();
+}
