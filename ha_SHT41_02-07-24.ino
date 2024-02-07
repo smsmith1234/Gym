@@ -159,14 +159,16 @@ void publishNetworkData() {
   client.publish(MAC_topic, String(WiFi.macAddress()).c_str(), true);
   client.publish(SSID_topic, String(WiFi.SSID()).c_str(), true);
 }
-void displayTemp() {
+void displaySHT41SensorData() {
    display.setTextSize(2);
-      display.clearDisplay();
-      display.setCursor(0, 0);
-      display.setCursor(0, 28);
-      display.print(String(newTemp).c_str());
-      display.print(" F");
-      display.display();
+   display.clearDisplay();
+   display.setCursor(0, 0);
+   display.print(String(newTemp).c_str());
+   display.print(" F");
+   display.setCursor(0, 28);
+   display.print(String(newHum).c_str();
+   display.print("  %RH"); 
+   display.display();
 }
 void displayWifiConnectionData(){
  display.setTextSize(2);
